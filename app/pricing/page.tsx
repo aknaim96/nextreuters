@@ -1,7 +1,12 @@
 import { createClient } from '@/utils/supabase/server'
 import { TierSelector } from '@/components/TierSelector'
 
-export default async function PricingPage() {
+export default async function PricingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ plan?: string; canceled?: string }>
+}) {
+  const params = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -26,7 +31,13 @@ export default async function PricingPage() {
           </p>
         </div>
 
-        <TierSelector currentTier={currentTier} isAuthenticated={!!user} />
+        {params.canceled && (
+          <div className="bg-zinc-50 border border-zinc-200 text-zinc-600 p-3 text-xs font-mono text-center">
+            Checkout was canceled — you can try again anytime.
+          </div>
+        )}
+
+        <TierSelector currentTier={currentTier} isAuthenticated={!!user} plan={params.plan} />
       </div>
     </div>
   )

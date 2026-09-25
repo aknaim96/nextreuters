@@ -31,11 +31,8 @@ export function ArticleTOCLayout({
   headings: { id: string; text: string }[]
   children: React.ReactNode
 }) {
-  // Starts collapsed on every screen size — on mobile the panel is a full overlay,
-  // so opening it automatically on page load would hide the article on arrival.
   const [collapsed, setCollapsed] = useState(true)
 
-  // Nothing to index — just render the article with no layout changes.
   if (headings.length === 0) {
     return <>{children}</>
   }
@@ -51,8 +48,7 @@ export function ArticleTOCLayout({
         />
       )}
 
-      {/* The panel: on large screens it's a sidebar that pushes content; on small
-          screens it's the same fixed panel but overlays on top instead. */}
+      {/* The sidebar panel */}
       {!collapsed && (
         <aside className="fixed left-0 top-20 bottom-6 z-30 w-72 max-w-[80vw]">
           <nav className="h-full flex flex-col bg-white border border-zinc-300 shadow-lg">
@@ -69,26 +65,25 @@ export function ArticleTOCLayout({
         </aside>
       )}
 
-      {/* One consistent red pull-tab for both states, at every screen size,
-          vertically centered on the left edge, sliding to the panel's edge when open. */}
+      {/* Hugs the left edge (left-0), centered vertically, slimmer width (w-7) */}
       <button
         onClick={() => setCollapsed(!collapsed)}
         aria-label={collapsed ? 'Expand story contents' : 'Collapse story contents'}
-        className={`fixed top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-2 w-9 py-4 bg-red-600 hover:bg-red-700 rounded-r-md shadow-lg transition-all duration-200 ${
+        className={`fixed top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-1.5 w-7 py-3 bg-red-600 hover:bg-red-700 rounded-r-md shadow-md transition-all duration-200 ${
           collapsed ? 'left-0' : 'left-72 max-[400px]:left-[80vw]'
         }`}
       >
         {collapsed ? (
-          <ChevronRight className="w-4 h-4 text-white" />
+          <ChevronRight className="w-3.5 h-3.5 text-white" />
         ) : (
-          <ChevronLeft className="w-4 h-4 text-white" />
+          <ChevronLeft className="w-3.5 h-3.5 text-white" />
         )}
-        <span className="font-mono text-[9px] uppercase tracking-widest text-white [writing-mode:vertical-rl] rotate-180">
+        <span className="font-mono text-[8px] uppercase tracking-wider text-white [writing-mode:vertical-rl] rotate-180">
           Contents
         </span>
       </button>
 
-      {/* Content only shifts right on large screens, where the panel pushes rather than overlays. */}
+      {/* Content layout shift */}
       <div className={`transition-[padding] duration-200 ${!collapsed ? 'lg:pl-80' : ''}`}>
         {children}
       </div>

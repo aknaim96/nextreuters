@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { updateUserRoleAction } from '@/app/actions/admin'
 
 export function RoleSelect({
@@ -15,6 +16,7 @@ export function RoleSelect({
   const [role, setRole] = useState(currentRole)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState('')
+  const router = useRouter()
 
   if (isSelf) {
     return (
@@ -45,6 +47,9 @@ export function RoleSelect({
       if (!result.success) {
         setError(result.error || 'Failed to update role.')
         setRole(previousRole)
+      } else {
+        // Tells Next.js to re-fetch the Server Component tree so the Audit Log and User list update
+        router.refresh()
       }
     })
   }

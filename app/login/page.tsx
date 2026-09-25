@@ -8,9 +8,13 @@ import { SubmitButton } from '@/components/SubmitButton'
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ message?: string; error?: string }>
+  searchParams: Promise<{ message?: string; error?: string; redirect?: string }>
 }) {
   const params = await searchParams
+  const safeRedirect =
+    typeof params.redirect === 'string' && params.redirect.startsWith('/') && !params.redirect.startsWith('//')
+      ? params.redirect
+      : '/'
 
   const handleLogin = async (formData: FormData) => {
     'use server'
@@ -21,10 +25,10 @@ export default async function LoginPage({
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      return redirect(`/login?error=${encodeURIComponent(error.message)}`)
+      return redirect(`/login?error=${encodeURIComponent(error.message)}&redirect=${encodeURIComponent(safeRedirect)}`)
     }
 
-    return redirect('/')
+    return redirect(safeRedirect)
   }
 
   return (
@@ -78,9 +82,9 @@ export default async function LoginPage({
 
           <div className="text-center pt-4 border-t border-zinc-200 text-xs font-mono text-zinc-600">
             Don't have an account?{' '}
-            <Link href="/register" className="text-red-600 font-bold hover:underline">
-              Register here
-            </Link>
+            <Link href={`/register?redirect=${encodeURIComponent(safeRedirect)}`} className="text-red-600 font-bold hover:underline">
+  Register here
+</Link>
           </div>
 
         </div>

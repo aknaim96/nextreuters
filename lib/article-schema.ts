@@ -6,7 +6,6 @@ export const articleSchema = z.object({
   excerpt: z.string().min(10, 'Excerpt must be at least 10 characters long.'),
   content: z.string().min(30, 'Content must be at least 30 characters long.'),
   category: z.enum(['Book Club', 'Opinion', 'Projects', 'Markets', 'World News']),
-  isPremium: z.string().nullish(), // 'on' or undefined from checkbox forms
   requiredTier: z.enum(['none', 'silver', 'gold']),
   featuredSlot: z.enum(['none', '1', '2', '3']).default('none'),
   status: z.enum(['draft', 'published']).default('draft'),
@@ -21,7 +20,6 @@ export function parseArticleForm(formData: FormData) {
     excerpt: formData.get('excerpt'),
     content: formData.get('content'),
     category: formData.get('category'),
-    isPremium: formData.get('isPremium'),
     requiredTier: formData.get('requiredTier'),
     featuredSlot: formData.get('featuredSlot') || 'none',
     status: formData.get('status') || 'draft',
@@ -40,7 +38,8 @@ export function parseArticleForm(formData: FormData) {
       excerpt: result.data.excerpt,
       content: result.data.content,
       category: result.data.category,
-      is_premium: result.data.isPremium === 'on',
+      // is_premium is now derived: any non-free tier means the article is paywalled
+      is_premium: result.data.requiredTier !== 'none',
       required_tier: result.data.requiredTier,
       featured_slot: result.data.featuredSlot === 'none' ? null : Number(result.data.featuredSlot),
       status: result.data.status,

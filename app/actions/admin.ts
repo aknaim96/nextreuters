@@ -18,15 +18,23 @@ async function logAdminAction(params: {
   targetEmail: string
   details?: Record<string, unknown>
 }) {
-  const adminClient = createAdminClient()
-  await adminClient.from('admin_audit_log').insert({
-    actor_id: params.actorId,
-    actor_email: params.actorEmail,
-    action: params.action,
-    target_id: params.targetId,
-    target_email: params.targetEmail,
-    details: params.details ?? null,
-  })
+  try {
+    const adminClient = createAdminClient()
+    const { error } = await adminClient.from('admin_audit_log').insert({
+      actor_id: params.actorId,
+      actor_email: params.actorEmail,
+      action: params.action,
+      target_id: params.targetId,
+      target_email: params.targetEmail,
+      details: params.details ?? null,
+    })
+
+    if (error) {
+      console.error('[Audit Log Error]:', error.message)
+    }
+  } catch (err) {
+    console.error('[Audit Log Exception]:', err)
+  }
 }
 
 export async function updateUserRoleAction(targetUserId: string, newRole: string) {
@@ -39,7 +47,7 @@ export async function updateUserRoleAction(targetUserId: string, newRole: string
 
   const { data: callerProfile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, email')
     .eq('id', user.id)
     .single()
 
@@ -51,8 +59,6 @@ export async function updateUserRoleAction(targetUserId: string, newRole: string
     return { success: false, error: 'Invalid role.' }
   }
 
-  // Prevent an admin from locking themselves (or the last admin) out by
-  // demoting their own account — role changes must come from another admin.
   if (targetUserId === user.id) {
     return { success: false, error: 'You cannot change your own role.' }
   }
@@ -74,7 +80,7 @@ export async function updateUserRoleAction(targetUserId: string, newRole: string
 
   await logAdminAction({
     actorId: user.id,
-    actorEmail: user.email ?? 'unknown',
+    actorEmail: callerProfile.email || user.email || 'unknown',
     action: 'role_change',
     targetId: targetUserId,
     targetEmail: targetProfile?.email ?? 'unknown',
@@ -86,9 +92,6 @@ export async function updateUserRoleAction(targetUserId: string, newRole: string
   return { success: true }
 }
 
-// Permanently deletes a user's account (auth + profile). Admin-only, and
-// requires the service-role key since deleting another person's auth
-// account is outside what the anon/authenticated client is ever allowed to do.
 export async function deleteUserAction(targetUserId: string) {
   const supabase = await createClient()
 
@@ -99,7 +102,7 @@ export async function deleteUserAction(targetUserId: string) {
 
   const { data: callerProfile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, email')
     .eq('id', user.id)
     .single()
 
@@ -119,8 +122,6 @@ export async function deleteUserAction(targetUserId: string) {
 
   const adminClient = createAdminClient()
 
-  // Delete the profile row first (child record) before the auth user (parent),
-  // in case there's no cascading delete configured between them.
   await adminClient.from('profiles').delete().eq('id', targetUserId)
 
   const { error } = await adminClient.auth.admin.deleteUser(targetUserId)
@@ -130,7 +131,7 @@ export async function deleteUserAction(targetUserId: string) {
 
   await logAdminAction({
     actorId: user.id,
-    actorEmail: user.email ?? 'unknown',
+    actorEmail: callerProfile.email || user.email || 'unknown',
     action: 'account_delete',
     targetId: targetUserId,
     targetEmail: targetProfile?.email ?? 'unknown',

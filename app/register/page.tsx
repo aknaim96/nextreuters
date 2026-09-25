@@ -9,15 +9,19 @@ import { TermsAgreementSubmit } from '@/components/TermsAgreementSubmit'
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ message?: string; error?: string }>
+  searchParams: Promise<{ message?: string; error?: string; redirect?: string }>
 }) {
   const params = await searchParams
+  const safeRedirect =
+    typeof params.redirect === 'string' && params.redirect.startsWith('/') && !params.redirect.startsWith('//')
+      ? params.redirect
+      : '/'
 
   const handleRegister = async (formData: FormData) => {
     'use server'
 
     if (formData.get('agreedToTerms') !== 'on') {
-      return redirect(`/register?error=${encodeURIComponent('You must agree to the Terms of Service and Privacy Policy to create an account.')}`)
+      return redirect(`/register?error=${encodeURIComponent('You must agree to the Terms of Service and Privacy Policy to create an account.')}&redirect=${encodeURIComponent(safeRedirect)}`)
     }
 
     const result = registerSchema.safeParse({
@@ -28,7 +32,7 @@ export default async function RegisterPage({
     })
 
     if (!result.success) {
-      return redirect(`/register?error=${encodeURIComponent(result.error.issues[0].message)}`)
+      return redirect(`/register?error=${encodeURIComponent(result.error.issues[0].message)}&redirect=${encodeURIComponent(safeRedirect)}`)
     }
 
     const { fullName, email, password, phoneNumber } = result.data
@@ -38,19 +42,16 @@ export default async function RegisterPage({
       email,
       password,
       options: {
-        data: {
-          full_name: fullName,
-          phone_number: phoneNumber || null,
-        },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+        data: { full_name: fullName, phone_number: phoneNumber || null },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?next=${encodeURIComponent(safeRedirect)}`,
       },
     })
 
     if (error) {
-      return redirect(`/register?error=${encodeURIComponent(error.message)}`)
+      return redirect(`/register?error=${encodeURIComponent(error.message)}&redirect=${encodeURIComponent(safeRedirect)}`)
     }
 
-    return redirect('/login?message=Registration successful. Please check your email or sign in.')
+    return redirect(`/login?message=${encodeURIComponent('Registration successful. Please check your email or sign in.')}&redirect=${encodeURIComponent(safeRedirect)}`)
   }
 
   return (

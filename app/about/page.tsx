@@ -12,16 +12,15 @@ export default function AboutPage() {
         <span className="text-xs font-mono uppercase tracking-widest text-red-600 font-bold">Our Story</span>
         <h1 className="font-serif text-3xl sm:text-5xl font-black tracking-tight mt-1">About Khan Chronicle</h1>
         <p className="font-serif text-zinc-600 mt-3 max-w-xl mx-auto">
-          Independent financial journalism, delivered like a wire dispatch — fast, direct, and built to
-          be read by people who actually make decisions with the information.
+          Redefining independent journalism through deep, thought-provoking reporting. We promote valuable knowledge for readers who live to learn and challenge their perspectives, one story at a time. Designed for readers who want to understand the world, not just watch it.
         </p>
       </div>
 
       <div className="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-5 sm:p-8 space-y-6">
-        <p className="font-serif text-lg text-zinc-800 leading-relaxed italic border-l-2 border-red-600 pl-4">
-          Khan Chronicle started as a simple idea: markets move fast, and most coverage doesn't. We
-          built a newsroom platform that publishes analysis, opinion, and long-form projects with the
-          urgency of a wire feed and the depth of a proper newsroom.
+        <p className="Calibri text-lg text-zinc-800 leading-relaxed border-l-2 border-red-600 pl-4">
+          Khan Chronicle started as a simple idea: markets move fast, and true coverage doesn't. We
+          built a newsroom platform that publishes analysis, opinion, and projects with the
+          urgency of offering a framework to endure present-day dilemma.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
@@ -30,9 +29,9 @@ export default function AboutPage() {
               <Radio className="w-4 h-4" />
             </span>
             <div>
-              <h3 className="font-serif font-bold text-zinc-900">Markets & Opinion</h3>
+              <h3 className="font-serif font-bold text-zinc-900">Read and Subscribe</h3>
               <p className="text-sm text-zinc-600 font-serif">
-                Real-time market coverage alongside sharp, independent editorial takes — not just headlines.
+                Offering both free learning opportunity and premium experience through exclusive memberships. Explore sharp opinions and deep worldly analysis. 
               </p>
             </div>
           </div>
@@ -42,9 +41,9 @@ export default function AboutPage() {
               <PenLine className="w-4 h-4" />
             </span>
             <div>
-              <h3 className="font-serif font-bold text-zinc-900">Book Club & Projects</h3>
+              <h3 className="font-serif font-bold text-zinc-900">Book Club</h3>
               <p className="text-sm text-zinc-600 font-serif">
-                Long-form dossiers and reading picks for readers who want more than a quick take.
+                Read smarter, not longer. In-depth book analysis and efficient summaries. Explore our online book club.
               </p>
             </div>
           </div>
@@ -56,7 +55,7 @@ export default function AboutPage() {
             <div>
               <h3 className="font-serif font-bold text-zinc-900">Editorial Standards</h3>
               <p className="text-sm text-zinc-600 font-serif">
-                Every article moves through a draft-and-review process — authors submit, editors publish.
+                No corporate backing, no institutional bias. Just transparent, uncompromised reporting.
               </p>
             </div>
           </div>
@@ -68,7 +67,7 @@ export default function AboutPage() {
             <div>
               <h3 className="font-serif font-bold text-zinc-900">Reader Supported</h3>
               <p className="text-sm text-zinc-600 font-serif">
-                We're funded by Silver and Gold subscribers and direct reader donations — not ads.
+                We're funded by our subscribers and direct reader donations — not ads.
               </p>
             </div>
           </div>

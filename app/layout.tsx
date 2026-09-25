@@ -3,6 +3,7 @@ import "./globals.css";
 import { PromoBanner } from "@/components/PromoBanner";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { ContentProtection } from "@/components/ContentProtection";
 
 export const metadata: Metadata = {
   title: "CHRONICLE KHAN",
@@ -17,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col bg-[#f7f7f7] text-gray-900 antialiased">
+        <ContentProtection />
         <PromoBanner />
         <Header />
         <main className="flex-1 w-full">{children}</main>

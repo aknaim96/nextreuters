@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { formatDate } from '@/lib/format-date'
+import { formatAuditTimestamp } from '@/lib/format-date'
 
 const PAGE_SIZE = 20
 
@@ -12,7 +12,9 @@ export default async function AdminAuditLogPage({
   searchParams: Promise<{ page?: string }>
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase
@@ -69,7 +71,9 @@ export default async function AdminAuditLogPage({
           <tbody className="divide-y divide-gray-100">
             {logs?.map((log) => (
               <tr key={log.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 font-mono text-xs text-gray-500">{formatDate(log.created_at)}</td>
+                <td className="px-6 py-4 font-mono text-xs text-gray-500">
+                  {formatAuditTimestamp(log.created_at)}
+                </td>
                 <td className="px-6 py-4 font-mono text-xs text-gray-700">{log.actor_email}</td>
                 <td className="px-6 py-4">
                   <span
@@ -101,7 +105,9 @@ export default async function AdminAuditLogPage({
           >
             ← Previous
           </Link>
-          <span className="text-gray-500">Page {page} of {totalPages} · {count} total</span>
+          <span className="text-gray-500">
+            Page {page} of {totalPages} · {count} total
+          </span>
           <Link
             href={`/admin/audit-log?page=${page + 1}`}
             className={`px-3 py-1.5 border border-gray-300 ${page >= totalPages ? 'pointer-events-none opacity-40' : 'hover:border-black'}`}

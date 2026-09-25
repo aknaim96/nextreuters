@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, Crown, Award, Tag } from 'lucide-react'
+import { Menu, X, Crown, Award, Tag, Settings, Shield, Users } from 'lucide-react'
 
 interface HeaderNavProps {
   userEmail: string | null
@@ -69,17 +69,32 @@ function ProfileBadge({
 
 export function HeaderNav({ userEmail, canAccessCMS, isAdmin, subscriptionTier }: HeaderNavProps) {
   const [open, setOpen] = useState(false)
+  const [adminMenuOpen, setAdminMenuOpen] = useState(false)
+  const adminMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (adminMenuRef.current && !adminMenuRef.current.contains(event.target as Node)) {
+        setAdminMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
     <header className="border-b border-zinc-300 bg-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 h-16 grid grid-cols-[auto_1fr_auto] items-center gap-4">
-        <Link href="/" className="font-serif font-black text-2xl tracking-tighter flex items-center space-x-1 justify-self-start">
-          <span>KHAN CHRONICLE</span>
-          <span className="text-red-600">\</span>
+        
+        {/* Logo with Gold Shimmer Hover Effect */}
+        <Link href="/" className="group flex items-center space-x-1 justify-self-start py-1">
+          <span className="font-serif font-black text-2xl tracking-tighter text-zinc-900 transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-yellow-600 group-hover:via-amber-500 group-hover:to-yellow-700 group-hover:bg-clip-text group-hover:text-transparent">
+            KHAN CHRONICLE
+          </span>
         </Link>
 
-        {/* Desktop: primary nav, centered independently of logo/account width */}
-        <nav className="hidden md:flex items-center justify-center space-x-6 font-mono text-xs uppercase tracking-wider text-zinc-700">
+        {/* Desktop: Primary Nav Centered */}
+        <nav className="hidden md:flex items-center justify-center space-x-6 font-mono text-xs uppercase tracking-wider text-zinc-700 font-medium">
           <Link href="/markets" className="hover:text-red-600 transition-colors">Markets</Link>
           <Link href="/opinion" className="hover:text-red-600 transition-colors">Opinion</Link>
           <Link href="/book-club" className="hover:text-red-600 transition-colors">Book Club</Link>
@@ -88,7 +103,7 @@ export function HeaderNav({ userEmail, canAccessCMS, isAdmin, subscriptionTier }
           <Link href="/search" className="hover:text-red-600 transition-colors">Search</Link>
         </nav>
 
-        {/* Desktop: account area on the right, unchanged except the renamed CMS link */}
+        {/* Desktop: Account Area */}
         <div className="hidden md:flex items-center gap-4 justify-self-end">
           {subscriptionTier !== 'silver' && subscriptionTier !== 'gold' && (
             <Link
@@ -99,25 +114,57 @@ export function HeaderNav({ userEmail, canAccessCMS, isAdmin, subscriptionTier }
               Pricing
             </Link>
           )}
+
+          {/* Your Original Unaltered Donate Button */}
           <Link
             href="/donate"
             className="inline-flex items-center text-[11px] font-mono uppercase tracking-widest font-bold text-red-600 border border-red-600 hover:bg-red-600 hover:text-white px-3.5 py-1.5 rounded-full transition-colors"
           >
             Donate
           </Link>
-          {canAccessCMS && (
-            <Link href="/cms" className="text-xs font-mono uppercase tracking-wider text-red-600 font-bold hover:underline">
-              Editorial Desk
-            </Link>
-          )}
-          {isAdmin && (
-            <Link href="/admin/users" className="text-xs font-mono uppercase tracking-wider text-black font-bold hover:underline">
-              Users
-            </Link>
-          )}
+
           {userEmail ? (
             <div className="flex items-center space-x-3">
+              {/* Editorial Desk & Users Dropdown Settings Toggle */}
+              {(canAccessCMS || isAdmin) && (
+                <div className="relative" ref={adminMenuRef}>
+                  <button
+                    onClick={() => setAdminMenuOpen(!adminMenuOpen)}
+                    aria-label="Management Settings"
+                    className="p-1.5 rounded-md border border-zinc-300 bg-zinc-50 hover:bg-zinc-100 text-zinc-700 hover:text-red-600 transition-colors shadow-2xs flex items-center justify-center"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </button>
+
+                  {adminMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white border border-zinc-300 shadow-lg rounded-xs py-1.5 z-50 font-mono text-xs uppercase tracking-wider">
+                      {canAccessCMS && (
+                        <Link
+                          href="/cms"
+                          onClick={() => setAdminMenuOpen(false)}
+                          className="flex items-center gap-2 px-4 py-2 text-zinc-700 hover:bg-zinc-50 hover:text-red-600 font-bold transition-colors"
+                        >
+                          <Shield className="w-3.5 h-3.5 text-red-600" />
+                          Editorial Desk
+                        </Link>
+                      )}
+                      {isAdmin && (
+                        <Link
+                          href="/admin/users"
+                          onClick={() => setAdminMenuOpen(false)}
+                          className="flex items-center gap-2 px-4 py-2 text-zinc-700 hover:bg-zinc-50 hover:text-black font-bold transition-colors border-t border-zinc-100"
+                        >
+                          <Users className="w-3.5 h-3.5 text-black" />
+                          Users
+                        </Link>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <ProfileBadge tier={subscriptionTier} email={userEmail} />
+
               <form action="/auth/signout" method="POST">
                 <button
                   type="submit"
@@ -145,7 +192,7 @@ export function HeaderNav({ userEmail, canAccessCMS, isAdmin, subscriptionTier }
           )}
         </div>
 
-        {/* Mobile: collapses everything down to just the logo + this toggle */}
+        {/* Mobile Menu Toggle */}
         <button
           onClick={() => setOpen(!open)}
           className="md:hidden text-zinc-700 hover:text-red-600 transition-colors justify-self-end"
@@ -156,8 +203,7 @@ export function HeaderNav({ userEmail, canAccessCMS, isAdmin, subscriptionTier }
         </button>
       </div>
 
-      {/* Mobile dropdown — positioned absolute so it overlays content instead of
-          pushing the header's own height around, keeping the sticky offset stable. */}
+      {/* Mobile Dropdown */}
       {open && (
         <div className="md:hidden absolute left-0 right-0 top-16 bg-white border-b border-zinc-300 shadow-lg">
           <nav className="flex flex-col px-4 py-4 space-y-3 font-mono text-xs uppercase tracking-wider text-zinc-700">
@@ -167,6 +213,7 @@ export function HeaderNav({ userEmail, canAccessCMS, isAdmin, subscriptionTier }
             <Link href="/projects" onClick={() => setOpen(false)} className="hover:text-red-600 transition-colors">Projects</Link>
             <Link href="/about" onClick={() => setOpen(false)} className="hover:text-red-600 transition-colors">About</Link>
             <Link href="/search" onClick={() => setOpen(false)} className="hover:text-red-600 transition-colors">Search</Link>
+            
             <div className="flex items-center gap-2 pt-1">
               {subscriptionTier !== 'silver' && subscriptionTier !== 'gold' && (
                 <Link
@@ -186,13 +233,23 @@ export function HeaderNav({ userEmail, canAccessCMS, isAdmin, subscriptionTier }
                 Donate
               </Link>
             </div>
-            {canAccessCMS && (
-              <Link href="/cms" onClick={() => setOpen(false)} className="text-red-600 font-bold hover:underline">Editorial Desk</Link>
-            )}
-            {isAdmin && (
-              <Link href="/admin/users" onClick={() => setOpen(false)} className="text-black font-bold hover:underline">Users</Link>
+
+            {(canAccessCMS || isAdmin) && (
+              <div className="flex flex-col gap-2 pt-2 border-t border-zinc-100">
+                {canAccessCMS && (
+                  <Link href="/cms" onClick={() => setOpen(false)} className="text-red-600 font-bold flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5" /> Editorial Desk
+                  </Link>
+                )}
+                {isAdmin && (
+                  <Link href="/admin/users" onClick={() => setOpen(false)} className="text-black font-bold flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5" /> Users Management
+                  </Link>
+                )}
+              </div>
             )}
           </nav>
+          
           <div className="px-4 pb-4 border-t border-zinc-100 pt-4">
             {userEmail ? (
               <div className="flex flex-col gap-3">

@@ -1,7 +1,13 @@
 import { Heart } from 'lucide-react'
 import { DonateTab } from '@/components/DonateTab'
 
-export default function DonatePage() {
+export default async function DonatePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ success?: string; canceled?: string }>
+}) {
+  const params = await searchParams
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12 w-full">
       <div className="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -20,7 +26,7 @@ export default function DonatePage() {
         </div>
 
         <div className="p-5 sm:p-8">
-          <DonateTab />
+          <DonateTab success={params.success === '1'} canceled={params.canceled === '1'} />
         </div>
       </div>
     </div>

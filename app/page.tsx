@@ -16,7 +16,7 @@ export default async function HomePage({
 }) {
   const supabase = await createClient()
 
-  // Fetch all articles from Supabase
+  // Fetch all published articles from Supabase
   const { data: articles } = await supabase
     .from('articles')
     .select('*')
@@ -26,8 +26,6 @@ export default async function HomePage({
   const all = articles ?? []
 
   // Hand-picked homepage placements, set by admins/editors in the CMS.
-  // Falls back to the latest articles by date for any slot the editors
-  // haven't assigned yet, so the homepage never looks empty.
   const pickedMain = all.find((a) => a.featured_slot === 1)
   const pickedSecondary = [2, 3]
     .map((slot) => all.find((a) => a.featured_slot === slot))
@@ -52,8 +50,7 @@ export default async function HomePage({
   const wireFeeds = all.filter((a) => !featuredIds.has(a.id))
   const hasArticles = all.length > 0
 
-  // The archive grid is paginated in-memory since the featured-slot picks
-  // above already need the full published list to compute correctly.
+  // Paginate wire feeds
   const { page: pageParam } = await searchParams
   const page = Math.max(1, parseInt(pageParam || '1', 10) || 1)
   const totalPages = Math.max(1, Math.ceil(wireFeeds.length / PAGE_SIZE))
@@ -80,33 +77,38 @@ export default async function HomePage({
         {hasArticles && featured ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-8 sm:pb-12 border-b border-zinc-300">
             
-            {/* Lead Story (2 Columns) */}
+            {/* Lead Story (2 Columns) - Unified with slow metallic glide & hover lift */}
             <div
-              className={`lg:col-span-2 space-y-4 pr-0 lg:pr-8 lg:border-r lg:border-zinc-300 ${
-                featured.is_premium ? `relative group overflow-hidden p-6 ${tierCardClasses(featured.required_tier, featured.is_premium)}` : ''
+              className={`lg:col-span-2 space-y-4 pr-0 lg:pr-8 lg:border-r lg:border-zinc-300 relative group overflow-hidden p-6 rounded-xs transition-all duration-700 ease-out flex flex-col justify-between shadow-sm hover:shadow-md ${
+                featured.is_premium
+                  ? tierAccentClasses(featured.required_tier, featured.is_premium)
+                  : 'bg-white border border-zinc-200 hover:border-zinc-400'
               }`}
             >
               {featured.is_premium && <TierShine tier={featured.required_tier} isPremium={featured.is_premium} />}
-              <div className="flex items-center space-x-2 text-xs font-mono text-red-600">
-                <span className="uppercase tracking-widest font-bold bg-red-50 px-2 py-0.5 border border-red-200">
-                  {featured.category}
-                </span>
-                {featured.is_premium && (
-                  <span className={`px-2 py-0.5 text-[10px] font-bold uppercase ${tierBadgeClasses(featured.required_tier)}`}>
-                    Premium Dossier ({featured.required_tier})
+              
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 text-xs font-mono">
+                  <span className="uppercase tracking-widest font-bold text-red-600 bg-red-50 px-2 py-0.5 border border-red-200">
+                    {featured.category}
                   </span>
-                )}
+                  {featured.is_premium && (
+                    <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-xs ${tierBadgeClasses(featured.required_tier)}`}>
+                      Premium Dossier ({featured.required_tier})
+                    </span>
+                  )}
+                </div>
+
+                <h1 className="font-serif text-3xl md:text-5xl font-black tracking-tight leading-tight hover:text-red-600 transition-colors">
+                  <Link href={`/articles/${featured.slug}`}>{featured.title}</Link>
+                </h1>
+
+                <p className="font-serif text-lg text-zinc-700 leading-relaxed">
+                  {featured.excerpt}
+                </p>
               </div>
 
-              <h1 className="font-serif text-3xl md:text-5xl font-black tracking-tight leading-tight hover:text-red-600 transition-colors">
-                <Link href={`/articles/${featured.slug}`}>{featured.title}</Link>
-              </h1>
-
-              <p className="font-serif text-lg text-zinc-700 leading-relaxed">
-                {featured.excerpt}
-              </p>
-
-              <div className="pt-4 flex items-center justify-between text-xs font-mono text-zinc-500 border-t border-zinc-100">
+              <div className="pt-4 flex items-center justify-between text-xs font-mono text-zinc-500 border-t border-zinc-100/80 mt-6">
                 <span className="flex items-center">
                   <Clock className="w-3.5 h-3.5 mr-1.5 text-zinc-400" />
                   {formatDate(featured.created_at)}
@@ -120,39 +122,56 @@ export default async function HomePage({
               </div>
             </div>
 
-            {/* Secondary Analysis Column (1 Column) */}
-            <div className="space-y-6">
-              <h2 className="font-mono text-xs uppercase tracking-widest text-zinc-900 font-bold border-b-2 border-black pb-2 flex items-center justify-between">
+            {/* Secondary Analysis / Editor's Picks Column */}
+            <div className="flex flex-col h-full space-y-4">
+              <h2 className="font-mono text-xs uppercase tracking-widest text-zinc-900 font-bold border-b-2 border-black pb-2 flex items-center justify-between shrink-0">
                 <span>Editor&apos;s Picks</span>
                 <span className="text-[10px] font-normal text-zinc-500">FEATURED</span>
               </h2>
-              <div className="space-y-6">
+              
+              <div className="flex flex-col flex-1 gap-4 justify-between">
                 {secondaryArticles.map((article) => (
                   <div
                     key={article.id}
-                    className={`relative group space-y-2 pb-6 border-b border-zinc-200 last:border-none ${
-                      article.is_premium ? `overflow-hidden ${tierAccentClasses(article.required_tier, article.is_premium)}` : ''
+                    className={`relative group flex flex-col justify-between flex-1 transition-all ${
+                      article.is_premium
+                        ? `overflow-hidden ${tierAccentClasses(article.required_tier, article.is_premium)}`
+                        : 'pb-6 border-b border-zinc-200 last:border-none'
                     }`}
                   >
-                    {article.is_premium && <TierShine tier={article.required_tier} isPremium={article.is_premium} />}
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-red-600 font-bold">
-                        {article.category}
-                      </span>
-                      {article.is_premium && (
-                        <span className={`px-1.5 py-0.5 text-[9px] font-bold uppercase ${tierBadgeClasses(article.required_tier)}`}>
-                          {article.required_tier}
+                    {article.is_premium && (
+                      <TierShine tier={article.required_tier} isPremium={article.is_premium} />
+                    )}
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-red-600 font-bold">
+                          {article.category}
                         </span>
-                      )}
+                        {article.is_premium && (
+                          <span
+                            className={`px-1.5 py-0.5 text-[9px] font-bold uppercase rounded-xs ${tierBadgeClasses(
+                              article.required_tier
+                            )}`}
+                          >
+                            {article.required_tier}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <h3 className="font-serif font-bold text-lg leading-snug">
+                        <Link
+                          href={`/articles/${article.slug}`}
+                          className="hover:text-red-600 transition-colors"
+                        >
+                          {article.title}
+                        </Link>
+                      </h3>
+                      
+                      <p className="text-xs text-zinc-600 font-serif line-clamp-3 leading-relaxed">
+                        {article.excerpt}
+                      </p>
                     </div>
-                    <h3 className="font-serif font-bold text-lg leading-snug">
-                      <Link href={`/articles/${article.slug}`} className="hover:text-red-600 transition-colors">
-                        {article.title}
-                      </Link>
-                    </h3>
-                    <p className="text-xs text-zinc-600 font-serif line-clamp-2">
-                      {article.excerpt}
-                    </p>
                   </div>
                 ))}
               </div>
@@ -160,7 +179,7 @@ export default async function HomePage({
 
           </div>
         ) : (
-          /* High-End Professional Empty State Standby Terminal */
+          /* Empty Standby Terminal */
           <div className="bg-white border-2 border-black p-10 md:p-16 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="space-y-6">
               <div className="inline-flex items-center space-x-2 bg-red-600 text-white px-3 py-1 text-xs font-mono uppercase tracking-wider font-bold">
@@ -205,7 +224,7 @@ export default async function HomePage({
           </div>
         )}
 
-        {/* Bottom Wire Grid (Only shows if there are enough articles) */}
+        {/* Bottom Wire Grid */}
         {wireFeeds.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-6 border-b-2 border-black pb-2">
